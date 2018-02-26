@@ -1,27 +1,31 @@
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Subscription } from 'rxjs/Subscription';
+
 import { Ingredient } from '../shared/ingredient.model';
-import { EventEmitter } from '@angular/core';
+import { ShoppingListService } from './../services/shopping-service.service';
 
-export class ShoppingListService {
-  ingredientsChanged = new EventEmitter<Ingredient[]>();
-  private ingredients: Ingredient[] = [
-    new Ingredient('Apples', 5),
-    new Ingredient('Tomatoes', 10),
-  ];
+@Component({
+  selector: 'app-shopping-list',
+  templateUrl: './shopping-list.component.html',
+  styleUrls: ['./shopping-list.component.css']
+})
+export class ShoppingListComponent implements OnInit, OnDestroy {
+  ingredients: Ingredient[];
+  private subscription: Subscription;
 
-  getIngredients() {
-    return this.ingredients.slice();
+  constructor(private slService: ShoppingListService) { }
+
+  ngOnInit() {
+    this.ingredients = this.slService.getIngredients();
+    this.subscription = this.slService.ingredientsChanged
+      .subscribe(
+        (ingredients: Ingredient[]) => {
+          this.ingredients = ingredients;
+        }
+      );
   }
 
-  addIngredient(ingredient: Ingredient) {
-    this.ingredients.push(ingredient);
-    this.ingredientsChanged.emit(this.ingredients.slice());
-  }
-
-  addIngredients(ingredients: Ingredient[]) {
-    // for (let ingredient of ingredients) {
-    //   this.addIngredient(ingredient);
-    // }
-    this.ingredients.push(...ingredients);
-    this.ingredientsChanged.emit(this.ingredients.slice());
+  ngOnDestroy() {
+    this.subscription.unsubscribe();
   }
 }
